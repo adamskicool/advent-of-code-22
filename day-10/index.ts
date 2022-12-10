@@ -78,7 +78,67 @@ async function puzzleOne() {
 
 	console.log(sum);
 }
-async function puzzleTwo() {}
+async function puzzleTwo() {
+	const cpuInstructions: CpuInstruction[] = await parseCpuInstructions();
 
-puzzleOne();
-// puzzleTwo();
+	const registerXCycleHistory: number[] = [];
+	let registerX: number = 1;
+	let cycle: number = 0;
+
+	for (const cpuInstruction of cpuInstructions) {
+		if (cpuInstruction.operation === CpuOperation.noop) {
+			cycle++;
+			registerXCycleHistory.push(registerX);
+		}
+		if (cpuInstruction.operation === CpuOperation.addx) {
+			cycle++;
+			registerXCycleHistory.push(registerX);
+			cycle++;
+			registerXCycleHistory.push(registerX);
+			registerX += cpuInstruction.value;
+		}
+	}
+
+	const screenHeight: number = 6;
+	const screenWidth: number = 40;
+
+	const pixelMatrix: ('.' | '#')[][] = [];
+
+	//init pixel matrix with all pixels off
+	for (let y = 0; y < screenHeight; y++) {
+		pixelMatrix.push([]);
+		for (let x = 0; x < screenWidth; x++) {
+			pixelMatrix[y].push('.');
+		}
+	}
+
+	console.log(pixelMatrix);
+
+	//loop trough register X and fill pixel matrix with some content.
+	for (
+		let cycleIndex = 0;
+		cycleIndex < registerXCycleHistory.length;
+		cycleIndex++
+	) {
+		//descirbes where the sprite is localted
+		const cycleRegisterXValue = registerXCycleHistory[cycleIndex];
+
+		const currentXPosition: number = cycleIndex % screenWidth;
+		const currentYPosition: number = Math.floor(cycleIndex / screenWidth);
+
+		// -1 since the sprite takes up three pixels, one on each side of the sprite position
+		const distanceToSprite: number =
+			Math.abs(currentXPosition - cycleRegisterXValue) - 1;
+
+		if (distanceToSprite < 1) {
+			pixelMatrix[currentYPosition][currentXPosition] = '#';
+		}
+	}
+
+	for (let x = 0; x < screenHeight; x++) {
+		console.log(pixelMatrix[x].join(''));
+	}
+}
+
+// puzzleOne();
+puzzleTwo();
